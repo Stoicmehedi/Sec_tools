@@ -3,11 +3,11 @@ from IPy import IP
 
 
 def scan(ip_addr, from_port, to_port):
+    ip = get_ip(ip_addr)
 
-    converted_ip = check_ip(ip_addr)
-    print('\n' + '[- Scanning Target]'+str(ip_addr))
-    for port in range(int(from_port), int(to_port)):
-        scan_port(converted_ip, port)
+    print('\n' + '[- Scanning Target]', ip_addr)
+    for port in range(from_port, to_port):
+        scan_port(ip, port)
 
 
 def grab_banner(s):
@@ -15,38 +15,37 @@ def grab_banner(s):
 
 
 def scan_port(ip_addr, port):
-
     try:
         sock = socket.socket()
-        sock.settimeout(0.5)
+        sock.settimeout(0.1)
+        if verbose == 'y':
+            print('port:', port)
         sock.connect((ip_addr, port))
 
         try:
             banner = grab_banner(sock)
-            print('[+] Open Port' + str(port) + ':' +
-                  str(banner.decode().strip('\n')))
+            print('[+] Open Port', port, ':', str(banner.decode().strip('\n')))
         except:
-            print('[+] Open Port' + str(port))
+            print('[+] Open Port ', port)
     except:
         pass
 
 
-def check_ip(ip):
+def get_ip(ip):
     try:
         IP(ip)
         return(ip)
     except ValueError:
         return socket.gethostbyname(ip)
 
+if __name__ == '__main__':
+    Targets = input('[+] Enter Url or Ip to scan (split target with [,]): ')
+    start_port, end_port = list(map(int, input('[+] Enter Port Range (Ex. 0-65535): ').split('-')))
+    global verbose
+    verbose = input('verbose output? (y/n): ')
 
-Targets = input('[+] Enter Url or Ip to scan (split target with [,] :')
-port_range_From = input('[+] Enter Port from --> :')
-port_range_To = input('[+] Enter Port To <---to :')
-
-if ',' in Targets:
-    for ip_addr in Targets.split(','):
-        scan(ip_addr.strip(' '), port_range_From, port_range_To)
-
-
-else:
-    scan(Targets, port_range_From, port_range_To)
+    if ',' in Targets:
+        for ip_addr in Targets.split(','):
+            scan(ip_addr.strip(' '), start_port, end_port + 1)
+    else:
+        scan(Targets, start_port, end_port + 1)
